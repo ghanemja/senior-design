@@ -1,8 +1,6 @@
-0: XIC(on_3),XIC(on_2)[[XIC(on_1),XIC(on_2)],XIC(on_2)][OTE(out_1),OTE(out_2)];
-1: [XIC(TP1)XIC(TP2)XIC(TP3)XIC(TR),XIC(mstart)XIC(Stop)XIO(mstop)]OTE(mstart);
-2: [XIC(mstart),XIC(reactorheater)]XIO(mstop)OTE(reactorheater);
-3: [XIC(tpvac.TT),XIC(mstart)XIC(vacpumps)XIO(pulse_start.EN)]OTE(vacpumps);
-4: XIC(mstart)[MOV(0,precursor1),MOV(0,precursor2),MOV(0,precursor3),MOV(0,tonp1.PRE),MOV(0,ton2),MOV(0,ton3),MOV(0,twait1.PRE),MOV(0,twait2),MOV(0,twait3),MOV(0,tvac1.PRE),MOV(0,tvac2),MOV(0,tvac3),MOV(0,cycles.PRE),MOV(0,twater.PRE),MOV(0,twaitw.PRE),MOV(0,tvacw.PRE)];
-5: XIC(mcstart)ADD(1,nsection,nsection);
-I: on_1,on_2,on_3,on_4;
-O: out1,out2;
+0: XIC(on_1)XIC(on_2)[OTE(out_1),TON(tpvac, tpvac.PRE=10, tpvac.ACC, tpvac.EN, tpvac.TT, tpvac.DN),TON(restart_s, restart_s.PRE=5, restart_s.ACC, restart_s.EN, restart_s.TT, restart_s.DN)];
+1: [XIC(on_3),XIC(on_4)]OTE(out_2);
+2: XIC(mstart)XIO(on_1)[MOV(0,precursor1),MOV(0,precursor2),MOV(0,precursor3),MOV(0,tonp1.PRE),MOV(0,ton2),MOV(0,ton3),MOV(0,twait1.PRE),MOV(0,twait2),MOV(0,twait3),MOV(0,tvac1.PRE),MOV(0,tvac2),MOV(0,tvac3),MOV(0,cycles.PRE),MOV(0,twater.PRE),MOV(0,twaitw.PRE),MOV(0,tvacw.PRE)];
+3: [XIC(on_3),XIC(on_1)]TON(trestarts, trestarts.PRE=0, trestarts.ACC, trestarts.EN, trestarts.TT, trestarts.DN);
+I: mstart,on_4;
+O: ton2

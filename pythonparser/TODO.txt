@@ -1,0 +1,7 @@
+Update Timer.v to reflect Don's recommendations
+
+Update code to match timer module header with all inputs and outputs
+
+Figure out if timers can be inputs like in line 12
+
+Check timers in general

@@ -13,13 +13,12 @@ wire clk = CLOCK_50;
 // On DE2-115, key up (default state) is 1, key pressed down is 0
 {set_wires}
 
-/* Declare outputs */
+/* Declare regs (variables and outputs) */
 reg [7:0]step_counter;
 reg [7:0]n_step_counter;
-reg
 {set_regs}
 
-
+/* Additional modules/functions */
 {set_template_modules}
 
 
