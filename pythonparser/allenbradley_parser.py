@@ -333,7 +333,7 @@ def write_verilog(filename):
         if len(mov_list) > 0:
             rung_text += "\n\t\t\t\tif (({}) == 1'b1)\n\t\t\t\tbegin".format(right_text)
             for m in mov_list:
-                rung_text += "\n\t\t\t\t\tn_{} <= 1'b{};".format(m[1], m[0])
+                rung_text += "\n\t\t\t\t\tn_{} <= 32'd{};".format(m[1], m[0])
             rung_text += '\n\t\t\t\tend'
         for a in add_list:
             rung_text += "\n\t\t\t\tn_{} <= ".format(a[2])
