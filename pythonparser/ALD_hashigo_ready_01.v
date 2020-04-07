@@ -51,22 +51,22 @@ reg twater_IN;
 reg vacpumps;
 reg [31:0]TBw;
 reg [31:0]cycleperspec;
-reg [31:0]cycles.PRE;
+reg [31:0]cycles_PRE;
 reg [31:0]precursor1;
 reg [31:0]precursor2;
 reg [31:0]precursor3;
 reg [31:0]ton2;
 reg [31:0]ton3;
-reg [31:0]tonp1.PRE;
-reg [31:0]tvac1.PRE;
+reg [31:0]tonp1_PRE;
+reg [31:0]tvac1_PRE;
 reg [31:0]tvac2;
 reg [31:0]tvac3;
-reg [31:0]tvacw.PRE;
-reg [31:0]twait1.PRE;
+reg [31:0]tvacw_PRE;
+reg [31:0]twait1_PRE;
 reg [31:0]twait2;
 reg [31:0]twait3;
-reg [31:0]twaitw.PRE;
-reg [31:0]twater.PRE;
+reg [31:0]twaitw_PRE;
+reg [31:0]twater_PRE;
 
 reg n_SV1;
 reg n_Tok;
@@ -96,22 +96,22 @@ reg n_twater_IN;
 reg n_vacpumps;
 reg [31:0]n_TBw;
 reg [31:0]n_cycleperspec;
-reg [31:0]n_cycles.PRE;
+reg [31:0]n_cycles_PRE;
 reg [31:0]n_precursor1;
 reg [31:0]n_precursor2;
 reg [31:0]n_precursor3;
 reg [31:0]n_ton2;
 reg [31:0]n_ton3;
-reg [31:0]n_tonp1.PRE;
-reg [31:0]n_tvac1.PRE;
+reg [31:0]n_tonp1_PRE;
+reg [31:0]n_tvac1_PRE;
 reg [31:0]n_tvac2;
 reg [31:0]n_tvac3;
-reg [31:0]n_tvacw.PRE;
-reg [31:0]n_twait1.PRE;
+reg [31:0]n_tvacw_PRE;
+reg [31:0]n_twait1_PRE;
 reg [31:0]n_twait2;
 reg [31:0]n_twait3;
-reg [31:0]n_twaitw.PRE;
-reg [31:0]n_twater.PRE;
+reg [31:0]n_twaitw_PRE;
+reg [31:0]n_twater_PRE;
 
 /* Additional modules/functions */
 // Make a slowed-down (1kHz) clock
@@ -120,63 +120,63 @@ DownClock down(clk, rst, tick);
 
 /* Rung 1 */
 // Timer: tpvac
-wire [31:0]tpvac_PRE, tpvac_ACC;
-wire tpvac_EN, tpvac_TT, tpvac_DN;
-Timer t1(clk, rst, tick, 32'd10, tpvac_IN, n_timer_1_done_wire);
+wire [31:0]tpvac_ACC;
+wire tpvac_DN, tpvac_TT, tpvac_EN;
+Timer t1(clk, rst, tick, 32'd10, tpvac_IN, tpvac_DN, tpvac_TT, tpvac_EN, tpvac_ACC);
 
 /* Rung 4 */
 // Timer: pulse_start
-wire [31:0]pulse_start_PRE, pulse_start_ACC;
-wire pulse_start_EN, pulse_start_TT, pulse_start_DN;
-Timer t2(clk, rst, tick, 32'd1001, pulse_start_IN, n_timer_2_done_wire);
+wire [31:0]pulse_start_ACC;
+wire pulse_start_DN, pulse_start_TT, pulse_start_EN;
+Timer t2(clk, rst, tick, 32'd1001, pulse_start_IN, pulse_start_DN, pulse_start_TT, pulse_start_EN, pulse_start_ACC);
 
 /* Rung 5 */
 // Timer: restart_s
-wire [31:0]restart_s_PRE, restart_s_ACC;
-wire restart_s_EN, restart_s_TT, restart_s_DN;
-Timer t3(clk, rst, tick, 32'd5, restart_s_IN, n_timer_3_done_wire);
+wire [31:0]restart_s_ACC;
+wire restart_s_DN, restart_s_TT, restart_s_EN;
+Timer t3(clk, rst, tick, 32'd5, restart_s_IN, restart_s_DN, restart_s_TT, restart_s_EN, restart_s_ACC);
 
 /* Rung 6 */
 // Timer: restart_p
-wire [31:0]restart_p_PRE, restart_p_ACC;
-wire restart_p_EN, restart_p_TT, restart_p_DN;
-Timer t4(clk, rst, tick, 32'd0, restart_p_IN, n_timer_4_done_wire);
+wire [31:0]restart_p_ACC;
+wire restart_p_DN, restart_p_TT, restart_p_EN;
+Timer t4(clk, rst, tick, 32'd0, restart_p_IN, restart_p_DN, restart_p_TT, restart_p_EN, restart_p_ACC);
 
 /* Rung 9 */
 // Timer: tpstart
-wire [31:0]tpstart_PRE, tpstart_ACC;
-wire tpstart_EN, tpstart_TT, tpstart_DN;
-Timer t5(clk, rst, tick, 32'd1000, tpstart_IN, n_timer_5_done_wire);
+wire [31:0]tpstart_ACC;
+wire tpstart_DN, tpstart_TT, tpstart_EN;
+Timer t5(clk, rst, tick, 32'd1000, tpstart_IN, tpstart_DN, tpstart_TT, tpstart_EN, tpstart_ACC);
 
 /* Rung 10 */
 // Timer: tonp1
-wire [31:0]tonp1_PRE, tonp1_ACC;
-wire tonp1_EN, tonp1_TT, tonp1_DN;
-Timer t6(clk, rst, tick, 32'd0, tonp1_IN, n_timer_6_done_wire);
+wire [31:0]tonp1_ACC;
+wire tonp1_DN, tonp1_TT, tonp1_EN;
+Timer t6(clk, rst, tick, 32'd0, tonp1_IN, tonp1_DN, tonp1_TT, tonp1_EN, tonp1_ACC);
 
 /* Rung 12 */
 // Timer: tvac1
-wire [31:0]tvac1_PRE, tvac1_ACC;
-wire tvac1_EN, tvac1_TT, tvac1_DN;
-Timer t7(clk, rst, tick, 32'd0, tvac1_IN, n_timer_7_done_wire);
+wire [31:0]tvac1_ACC;
+wire tvac1_DN, tvac1_TT, tvac1_EN;
+Timer t7(clk, rst, tick, 32'd0, tvac1_IN, tvac1_DN, tvac1_TT, tvac1_EN, tvac1_ACC);
 
 /* Rung 14 */
 // Timer: twater
-wire [31:0]twater_PRE, twater_ACC;
-wire twater_EN, twater_TT, twater_DN;
-Timer t8(clk, rst, tick, 32'd0, twater_IN, n_timer_8_done_wire);
+wire [31:0]twater_ACC;
+wire twater_DN, twater_TT, twater_EN;
+Timer t8(clk, rst, tick, 32'd0, twater_IN, twater_DN, twater_TT, twater_EN, twater_ACC);
 
 /* Rung 16 */
 // Timer: tvacw
-wire [31:0]tvacw_PRE, tvacw_ACC;
-wire tvacw_EN, tvacw_TT, tvacw_DN;
-Timer t9(clk, rst, tick, 32'd0, tvacw_IN, n_timer_9_done_wire);
+wire [31:0]tvacw_ACC;
+wire tvacw_DN, tvacw_TT, tvacw_EN;
+Timer t9(clk, rst, tick, 32'd0, tvacw_IN, tvacw_DN, tvacw_TT, tvacw_EN, tvacw_ACC);
 
 /* Rung 18 */
 // Timer: trestarts
-wire [31:0]trestarts_PRE, trestarts_ACC;
-wire trestarts_EN, trestarts_TT, trestarts_DN;
-Timer t10(clk, rst, tick, 32'd0, trestarts_IN, n_timer_10_done_wire);
+wire [31:0]trestarts_ACC;
+wire trestarts_DN, trestarts_TT, trestarts_EN;
+Timer t10(clk, rst, tick, 32'd0, trestarts_IN, trestarts_DN, trestarts_TT, trestarts_EN, trestarts_ACC);
 
 
 
@@ -186,51 +186,51 @@ always @(posedge clk or negedge rst) begin
     if (rst == 1'b0) begin
         rung_count <= 64'd0;
 		
-		SV1 <= 1'b0
-		Tok <= 1'b0
-		VV1 <= 1'b0
-		VV2 <= 1'b0
-		mstart <= 1'b0
-		pulse_start_IN <= 1'b0
-		reactorheater <= 1'b0
-		restart_p_IN <= 1'b0
-		restart_s_IN <= 1'b0
-		startpos <= 1'b0
-		sv1 <= 1'b0
-		sv2 <= 1'b0
-		sv3 <= 1'b0
-		svac1 <= 1'b0
-		tonp1_IN <= 1'b0
-		tpstart_IN <= 1'b0
-		tpvac_IN <= 1'b0
-		trestarts_IN <= 1'b0
-		trig11 <= 1'b0
-		trig21 <= 1'b0
-		trig71 <= 1'b0
-		trig81 <= 1'b0
-		tvac1_IN <= 1'b0
-		tvacw_IN <= 1'b0
-		twater_IN <= 1'b0
-		vacpumps <= 1'b0
+		SV1 <= 1'b0;
+		Tok <= 1'b0;
+		VV1 <= 1'b0;
+		VV2 <= 1'b0;
+		mstart <= 1'b0;
+		pulse_start_IN <= 1'b0;
+		reactorheater <= 1'b0;
+		restart_p_IN <= 1'b0;
+		restart_s_IN <= 1'b0;
+		startpos <= 1'b0;
+		sv1 <= 1'b0;
+		sv2 <= 1'b0;
+		sv3 <= 1'b0;
+		svac1 <= 1'b0;
+		tonp1_IN <= 1'b0;
+		tpstart_IN <= 1'b0;
+		tpvac_IN <= 1'b0;
+		trestarts_IN <= 1'b0;
+		trig11 <= 1'b0;
+		trig21 <= 1'b0;
+		trig71 <= 1'b0;
+		trig81 <= 1'b0;
+		tvac1_IN <= 1'b0;
+		tvacw_IN <= 1'b0;
+		twater_IN <= 1'b0;
+		vacpumps <= 1'b0;
 
-		TBw <= 32'd0
-		cycleperspec <= 32'd0
-		cycles.PRE <= 32'd0
-		precursor1 <= 32'd0
-		precursor2 <= 32'd0
-		precursor3 <= 32'd0
-		ton2 <= 32'd0
-		ton3 <= 32'd0
-		tonp1.PRE <= 32'd0
-		tvac1.PRE <= 32'd0
-		tvac2 <= 32'd0
-		tvac3 <= 32'd0
-		tvacw.PRE <= 32'd0
-		twait1.PRE <= 32'd0
-		twait2 <= 32'd0
-		twait3 <= 32'd0
-		twaitw.PRE <= 32'd0
-		twater.PRE <= 32'd0
+		TBw <= 32'd0;
+		cycleperspec <= 32'd0;
+		cycles_PRE <= 32'd0;
+		precursor1 <= 32'd0;
+		precursor2 <= 32'd0;
+		precursor3 <= 32'd0;
+		ton2 <= 32'd0;
+		ton3 <= 32'd0;
+		tonp1_PRE <= 32'd0;
+		tvac1_PRE <= 32'd0;
+		tvac2 <= 32'd0;
+		tvac3 <= 32'd0;
+		tvacw_PRE <= 32'd0;
+		twait1_PRE <= 32'd0;
+		twait2 <= 32'd0;
+		twait3 <= 32'd0;
+		twaitw_PRE <= 32'd0;
+		twater_PRE <= 32'd0;
     end
     else begin
         rung_count <= (rung_count + 64'b1) % 27;
@@ -268,30 +268,30 @@ always @(posedge clk or negedge rst) begin
 			7: begin
 				if ((n_mstart && (|| (|| ))&& () == 1'b1)
 				begin
-					n_cycleperspec <= 1'b0;
-					n_TBw <= 1'b0;
+					n_cycleperspec <= 32'd0;
+					n_TBw <= 32'd0;
 				end
 			end
 
 			8: begin
 				if ((n_mstart) == 1'b1)
 				begin
-					n_tvacw.PRE <= 1'b0;
-					n_twaitw.PRE <= 1'b0;
-					n_twater.PRE <= 1'b0;
-					n_cycles.PRE <= 1'b0;
-					n_tvac3 <= 1'b0;
-					n_tvac2 <= 1'b0;
-					n_tvac1.PRE <= 1'b0;
-					n_twait3 <= 1'b0;
-					n_twait2 <= 1'b0;
-					n_twait1.PRE <= 1'b0;
-					n_ton3 <= 1'b0;
-					n_ton2 <= 1'b0;
-					n_tonp1.PRE <= 1'b0;
-					n_precursor3 <= 1'b0;
-					n_precursor2 <= 1'b0;
-					n_precursor1 <= 1'b0;
+					n_tvacw_PRE <= 32'd0;
+					n_twaitw_PRE <= 32'd0;
+					n_twater_PRE <= 32'd0;
+					n_cycles_PRE <= 32'd0;
+					n_tvac3 <= 32'd0;
+					n_tvac2 <= 32'd0;
+					n_tvac1_PRE <= 32'd0;
+					n_twait3 <= 32'd0;
+					n_twait2 <= 32'd0;
+					n_twait1_PRE <= 32'd0;
+					n_ton3 <= 32'd0;
+					n_ton2 <= 32'd0;
+					n_tonp1_PRE <= 32'd0;
+					n_precursor3 <= 32'd0;
+					n_precursor2 <= 32'd0;
+					n_precursor1 <= 32'd0;
 				end
 			end
 
@@ -394,22 +394,22 @@ always @(posedge clk or negedge rst) begin
 
 				TBw <= n_TBw;
 				cycleperspec <= n_cycleperspec;
-				cycles.PRE <= n_cycles.PRE;
+				cycles_PRE <= n_cycles_PRE;
 				precursor1 <= n_precursor1;
 				precursor2 <= n_precursor2;
 				precursor3 <= n_precursor3;
 				ton2 <= n_ton2;
 				ton3 <= n_ton3;
-				tonp1.PRE <= n_tonp1.PRE;
-				tvac1.PRE <= n_tvac1.PRE;
+				tonp1_PRE <= n_tonp1_PRE;
+				tvac1_PRE <= n_tvac1_PRE;
 				tvac2 <= n_tvac2;
 				tvac3 <= n_tvac3;
-				tvacw.PRE <= n_tvacw.PRE;
-				twait1.PRE <= n_twait1.PRE;
+				tvacw_PRE <= n_tvacw_PRE;
+				twait1_PRE <= n_twait1_PRE;
 				twait2 <= n_twait2;
 				twait3 <= n_twait3;
-				twaitw.PRE <= n_twaitw.PRE;
-				twater.PRE <= n_twater.PRE;
+				twaitw_PRE <= n_twaitw_PRE;
+				twater_PRE <= n_twater_PRE;
 			end
 
         endcase

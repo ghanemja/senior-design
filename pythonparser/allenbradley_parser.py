@@ -61,7 +61,7 @@ def parse_l5x(root, filename):
             timer_name = timer_str.split(',')[0]
             timer_tag = Tags.find('Tag[@Name="{}"]'.format(timer_name))
             timerPRE_val = timer_tag.find('Data[@Format="Decorated"]/Structure/DataValueMember[@Name="PRE"]').attrib['Value']
-            new_timer_str = 'TON({}, {}.PRE={})'.format(timer_name,timer_name,timerPRE_val)
+            new_timer_str = 'TON({}, {}_PRE={})'.format(timer_name,timer_name,timerPRE_val)
             updated_rung = updated_rung[:start_index] + new_timer_str + updated_rung[end_index+1:]
         updated_rungs.append(updated_rung)
         
@@ -98,7 +98,8 @@ def parse_l5x(root, filename):
     # Just to say where erroredout
     except:
         print('\nError finding inputs/outputs\n')
-        
+    
+    hashigo_text = hashigo_text.replace('.','_')
         
     # have new hashigo text and this creates a new file same filename as earlier just different extension
     with open('{}.hshg'.format(filename), 'w') as file:
@@ -126,7 +127,7 @@ def write_verilog(filename):
         with open('{}.hshg'.format(filename), 'r') as file:
             hshg_text = file.read()
     except:
-        print('Error reading created hashigo file')
+        print('Error: Could not read hashigo file')
         sys.exit()
     
     
@@ -280,15 +281,18 @@ def write_verilog(filename):
             # each rung has a list for different types of outputs
             if l.node_type == 'OTE':
                 if not l.arguments[0] in regs_list:
-                    regs_list.append([l.arguments[0],'bool'])
+                    tmp = l.arguments[0].replace('.','_')
+                    regs_list.append([tmp,'bool'])
                 left_arguments.append(l.arguments[0])
             elif l.node_type == 'MOV':
                 if l.arguments[1] not in regs_list:
-                    regs_list.append([l.arguments[1],'int'])
+                    tmp = l.arguments[1].replace('.','_')
+                    regs_list.append([tmp,'int'])
                 mov_list.append(l.arguments)
             elif l.node_type == 'ADD':
                 if not l.arguments[2] in regs_list:
-                    regs_list.append([l.arguments[2],'int'])
+                    tmp = l.arguments[2].replace('.','_')
+                    regs_list.append([tmp,'int'])
                 add_list.append(l.arguments)
             elif l.node_type == 'TON': # ton is for timer
                 if not [l.arguments,rung_count] in timer_list:
@@ -403,11 +407,11 @@ def write_verilog(filename):
     set_resets_text = ''
     for reg in regs_list:
         if reg[1] == 'bool':
-            set_resets_text += "\n\t\t{} <= 1'b0".format(reg[0])
+            set_resets_text += "\n\t\t{} <= 1'b0;".format(reg[0])
     set_resets_text += '\n'
     for reg in regs_list:
         if reg[1] == 'int':
-            set_resets_text += "\n\t\t{} <= 32'd0".format(reg[0])
+            set_resets_text += "\n\t\t{} <= 32'd0;".format(reg[0])
     v_text = v_text.replace('{set_resets}', set_resets_text)
     
     
@@ -440,10 +444,10 @@ def write_verilog(filename):
                     flg = 1
                 timer_name = timer[0][0]
                 template_modules_text += '// Timer: {}\n'.format(timer_name)
-                template_modules_text += 'wire [31:0]{}_PRE, {}_ACC;\n'.format(timer_name, timer_name)
-                template_modules_text += 'wire {}_EN, {}_TT, {}_DN;\n'.format(timer_name, timer_name, timer_name)
-                template_modules_text += "Timer t{}(clk, rst, tick, 32'd{}, {}_IN, n_timer_{}_done_wire);\n\n" \
-                    .format(timer_cnt,timer[0][1].split('=')[1],timer_name,timer_cnt)
+                template_modules_text += 'wire [31:0]{}_ACC;\n'.format(timer_name, timer_name)
+                template_modules_text += 'wire {}_DN, {}_TT, {}_EN;\n'.format(timer_name, timer_name, timer_name)
+                template_modules_text += "Timer t{}(clk, rst, tick, 32'd{}, {}_IN, {}_DN, {}_TT, {}_EN, {}_ACC);\n\n" \
+                    .format(timer_cnt,timer[0][1].split('=')[1],timer_name,timer_name,timer_name,timer_name,timer_name)
         # 
         # template_modules_text += 'timer yee haw {} {} \n'.format(timer_list[i][0], i)
     
@@ -462,10 +466,10 @@ def main():
     os.system('cls' if os.name == 'nt' else 'clear')
     try:
         file = sys.argv[1]
+        # Remove / or \ or . at beginning of file name
         while not file[0].isalnum():
             file = file[1:]
         [filename, filetype] = file.split('.') # taking second item from argv
-    
     except: # if it is a bad file, can't be read by xml parser tree, file doesn't exist it, or no file argument at all: cancels program
         print('\nPlease enter valid .L5X or .hshg file in form "python allenbradley_parser.py example.L5X"\n')
         sys.exit(1)
@@ -473,6 +477,8 @@ def main():
     if filetype.upper() not in ['L5X', 'XML', 'HSHG']:
         print('\nInvalid filetype, please enter valid .L5X or .hshg file in form "python allenbradley_parser.py example.L5X"\n')
         sys.exit(1)
+
+        
     if filetype.upper() in ['L5X', 'XML']:
         tree = ET.parse(sys.argv[1]) # taking second cml argument (filename), doing element tree parse on that which is xml to get the root
         print('\nParsing {}'.format(sys.argv[1]))

@@ -3,62 +3,83 @@
  * This module counts in milliseconds and flips on the `done' bit once that
  * much time has elapsed.
  *
- * \param[in] clk the system clock of the FPGA.
- * \param[in] rst the reset signal.
- * \param[in] tick the slowed-down system clock. Frequency must be 1 kHz
+ * \param[in] clk: the system clock of the FPGA.
+ * \param[in] rst: the reset signal.
+ * \param[in] tick: the slowed-down system clock. Frequency must be 1 kHz
  *                 (1 ms per tick).
- * \param[in] [31:0] preset the time for this timer to wait in milliseconds.
- * \param[in] enabled 1 if this timer should be enabled (i.e. counting), 0
- *                    otherwise. Counter is reset when enabled becomes low.
- * \param[out] done 1 if counting is done, 0 otherwise. This remains high
- *                  after time has elapsed until `enabled' or `rst' is
+ * \param[in] [31:0] PRE (Preset): the time for this timer to wait in milliseconds.
+ * \param[in] IN (Timer Enable): 1 if this timer should be enabled (i.e. counting), 0
+ *                  otherwise. Counter is reset when enabled becomes low.
+ * \param[out] DN (Done): 1 if counting is done (ACC >= PRE) and timer is enabled. This remains high
+ *                  after timer has completed until Timer is disabled or `rst' is
  *                  triggered.
+ * \param[out] TT (Timer Timing): 1 if counting is not done (ACC < PRE) and timer is enabled.
+ *                  If timer is done counting (ACC >= PRE) or timer is disabled, TT is 0.
+ * \param[out] EN (Enable): 1 if the timer is enabled; Meaning, this bit indicates if the rung
+ *                  conditions preceeding the TON are true and the Timer is enabled.
+ * \param[out] [31:0] ACC (Accumulated): The Timer's counter, this is reset to 0 if the timer
+ *                  is disabled.
+ * 
  */
 
-module Timer(
-    input clk,
-    input rst,
-    input tick,
-    input [31:0]preset,
-    input enabled,
-    output done
+module seniordesigntest(
+    clk,
+    rst,
+    tick,
+    PRE,
+    IN,
+    DN,
+	 TT,
+	 EN,
+	 ACC
 );
+
+input clk;
+input rst;
+input tick;
+input [31:0]PRE;
+input IN;
+output reg DN;
+output reg TT;
+output reg EN;
+output reg [31:0]ACC;
 
 // Used to figure out high-low, low-high
 // transition of down-sampled clock signal
 reg last_tick;
-reg [31:0] counter;
-reg done_reg;
-assign done = done_reg;
 
 always @(posedge clk or negedge rst) begin
-    if (rst == 1'b0) begin
-        last_tick <= 1'b0;
-        counter <= 32'b0;
-        done_reg <= 1'b0;
-    end
-    else begin
-        last_tick <= tick;
+	if (rst == 1'b0) begin
+		last_tick <= 1'b0;
+		ACC <= 32'd0;
+		DN <= 1'b0;
+		TT <= 1'b0;
+		EN <= 1'b0;
+	end
+	else begin
+		last_tick <= tick;
 
-        if (enabled == 1'b0) begin
-            counter <= 32'b0;
-            done_reg <= 1'b0;
-            last_tick <= 1'b0;
-        end
-        // Capture posedge of down-sampled clock
-        else if (tick != last_tick && tick == 1'b1) begin
-            if (counter >= preset) begin
-                done_reg <= 1'b1;
-            end
-            else begin
-                counter <= counter + 1;
-                done_reg <= 1'b0;
-            end
-        end
-        else begin
-            done_reg <= 1'b0;
-        end
-    end
+		// Timer is note enabled
+		if (IN == 1'b0) begin
+			ACC <= 32'd0;
+			DN <= 1'b0;
+			TT <= 1'b0;
+			EN <= 1'b0;
+		end
+
+		// Timer is enabled
+		else 
+		begin
+			DN <= (ACC >= PRE)? 1'b1 : 1'b0;
+			TT <= (ACC < PRE)? 1'b1 : 1'b0;
+			EN <= 1'b1;
+
+			// Increment ACC on posedge of down-sampled clock until it reaches PRE
+			if (tick != last_tick && tick == 1'b1) begin
+				ACC <= (ACC >= PRE)? ACC : ACC + 32'd1;
+			end
+		end
+	end
 end
 
 endmodule
