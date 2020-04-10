@@ -22,7 +22,7 @@
  * 
  */
 
-module seniordesigntest(
+module Timer(
     clk,
     rst,
     tick,

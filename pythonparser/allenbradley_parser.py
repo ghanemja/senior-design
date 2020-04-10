@@ -140,7 +140,7 @@ def write_verilog(filename):
     # Write wires (inputs)
     # Going thru verilog template
     wires_text = ''# comes down to text bc replacing test
-    i = 0 #counter
+
     hshg_text_lines = hshg_text.split('\n') #split text into lines
     rungs = [] #making lists, R/i/o are all we have in hashigo
     inputs = []
@@ -153,13 +153,14 @@ def write_verilog(filename):
         else:
             rungs.append(''.join(line[:-1].split(':')[1:])[1:]) # rungs are just strings in ladder logic
     
+    i = 0 #counter
     for input in inputs:
         if input.lower() in 'reset rst': # for every input get wires text and add the following text
-            wires_text += 'wire rst = KEY[{}];\n'.format(i)
+            wires_text += 'wire n_rst = SW[{}];\n'.format(i)
         else: # i variable keeps track of which input it is
         # all lowercase for convention, doesn't actually matter
-            wires_text += 'wire {} = !KEY[{}];\n'.format(input.lower(),i) # have to invert input because that is how it works in verilogs for physical buttons on FPGA
-        i += 1
+            wires_text += 'wire n_{} = SW[{}];\n'.format(input.strip(),i) 
+            i += 1
     v_text = v_text.replace('{set_wires}',wires_text) # verilog text output file
     
 
@@ -172,6 +173,7 @@ def write_verilog(filename):
     # regs = registers, register is a variable in verilog
     # every item in regs list is a list itself (a list of sets, each list has 2 arguments, first is name then data type), this is general not unique to each rung
     timer_list = [] # add timers as we find them
+    timer_presets = {}
     for rung in rungs:
     # goes left to right through the rung and parses the string into a data structure that we can use for verilog
         # going into each rungs
@@ -262,10 +264,11 @@ def write_verilog(filename):
             nodes = nodes[1:i]
 
         # chop them off
-        while nodes[-1].node_type in ['AND','OR','LBRACKET']:
-            nodes = nodes[:-1]
+        if len(nodes) > 0:
+            while nodes[-1].node_type in ['AND','OR','LBRACKET']:
+                nodes = nodes[:-1]
         # now we just have input arguments left
-        left_arguments = []
+        ote_list = []
         # ladder logic has logic on left and setting on the right
         mov_list = [] # outputs can be basic variable or move function or time function
         add_list = []
@@ -280,31 +283,35 @@ def write_verilog(filename):
             # 2. append the variable to the list of right args, move, list, timer list, etc for each type of outputs
             # each rung has a list for different types of outputs
             if l.node_type == 'OTE':
-                if not l.arguments[0] in regs_list:
-                    tmp = l.arguments[0].replace('.','_')
+                tmp = l.arguments[0].replace('.','_')
+                if not [tmp, 'bool'] in regs_list:
                     regs_list.append([tmp,'bool'])
-                left_arguments.append(l.arguments[0])
+                ote_list.append(tmp)
             elif l.node_type == 'MOV':
-                if l.arguments[1] not in regs_list:
-                    tmp = l.arguments[1].replace('.','_')
+                tmp = l.arguments[1].replace('.','_')
+                if not [tmp, 'int'] in regs_list:
                     regs_list.append([tmp,'int'])
-                mov_list.append(l.arguments)
+                mov_list.append([l.arguments[0],tmp])
             elif l.node_type == 'ADD':
-                if not l.arguments[2] in regs_list:
-                    tmp = l.arguments[2].replace('.','_')
+                tmp = l.arguments[2].replace('.','_')
+                if not [tmp, 'int'] in regs_list:
                     regs_list.append([tmp,'int'])
-                add_list.append(l.arguments)
+                add_list.append([l.arguments[0], l.arguments[1], tmp])
             elif l.node_type == 'TON': # ton is for timer
+                #print(l.arguments[0])
                 if not [l.arguments,rung_count] in timer_list:
                     timer_list.append([l.arguments,rung_count])
                     regs_list.append(['{}_IN'.format(l.arguments[0]),'bool'])
+                    if not ['{}_PRE'.format(l.arguments[0]),'int'] in regs_list:
+                        regs_list.append(['{}_PRE'.format(l.arguments[0]),'int'])
                 timer_list_current_rung.append([l.arguments,rung_count])
+                timer_presets[l.arguments[0]] = l.arguments[1].split('=')[1]
                 
                     
         # for node in nodes:
             # print(node)
         # print('\n')
-        # for arg in left_arguments:
+        # for arg in ote_list:
             # print(arg)
         # print('\n\n')
         
@@ -326,13 +333,15 @@ def write_verilog(filename):
             elif type == 'RBRACKET':
                 right_text += ')'
         right_text = right_text.strip()
+        if right_text == '':
+            right_text = "1'b1"
         
         # have logic now and have to create the text from it
         # have 4 lists and they each have different formatting
         # l is variable, right text is logic used in every one
         rung_text = '\t\t\t'
         rung_text += '{}: begin'.format(rung_count)
-        for l in left_arguments:
+        for l in ote_list:
             rung_text += '\n\t\t\t\tn_{} <= {};'.format(l,right_text)
         if len(mov_list) > 0:
             rung_text += "\n\t\t\t\tif (({}) == 1'b1)\n\t\t\t\tbegin".format(right_text)
@@ -390,14 +399,22 @@ def write_verilog(filename):
             regs_text += "\nreg {};".format(reg[0])
     for reg in regs_list:
         if reg[1] == 'int':
-            regs_text += "\nreg [31:0]{};".format(reg[0])
+            if reg[0][-4:] == '_PRE':
+                timer_preset = timer_presets[reg[0][:-4]]
+                regs_text += "\nreg [31:0]{} = 32'd{};".format(reg[0], timer_preset)
+            else:
+                regs_text += "\nreg [31:0]{};".format(reg[0])
     regs_text += '\n'        
     for reg in regs_list:
         if reg[1] == 'bool':
             regs_text += "\nreg n_{};".format(reg[0])
     for reg in regs_list:
         if reg[1] == 'int':
-            regs_text += "\nreg [31:0]n_{};".format(reg[0])
+            if reg[0][-4:] == '_PRE':
+                timer_preset = timer_presets[reg[0][:-4]]
+                regs_text += "\nreg [31:0]n_{} = 32'd{};".format(reg[0], timer_preset)
+            else:
+                regs_text += "\nreg [31:0]n_{};".format(reg[0])
     v_text = v_text.replace('{set_regs}', regs_text)
     
     # Resets Text
@@ -408,10 +425,24 @@ def write_verilog(filename):
     for reg in regs_list:
         if reg[1] == 'bool':
             set_resets_text += "\n\t\t{} <= 1'b0;".format(reg[0])
-    set_resets_text += '\n'
     for reg in regs_list:
         if reg[1] == 'int':
-            set_resets_text += "\n\t\t{} <= 32'd0;".format(reg[0])
+            if reg[0][-4:] == '_PRE':
+                timer_preset = timer_presets[reg[0][:-4]]
+                set_resets_text += "\n\t\t{} <= 32'd{};".format(reg[0], timer_preset)
+            else:
+                set_resets_text += "\n\t\t{} <= 32'd0;".format(reg[0])
+    set_resets_text += '\n'            
+    for reg in regs_list:
+        if reg[1] == 'bool':
+            set_resets_text += "\n\t\tn_{} <= 1'b0;".format(reg[0])
+    for reg in regs_list:
+        if reg[1] == 'int':
+            if reg[0][-4:] == '_PRE':
+                timer_preset = timer_presets[reg[0][:-4]]
+                set_resets_text += "\n\t\tn_{} <= 32'd{};".format(reg[0], timer_preset)
+            else:
+                set_resets_text += "\n\t\tn_{} <= 32'd0;".format(reg[0])
     v_text = v_text.replace('{set_resets}', set_resets_text)
     
     
@@ -446,8 +477,8 @@ def write_verilog(filename):
                 template_modules_text += '// Timer: {}\n'.format(timer_name)
                 template_modules_text += 'wire [31:0]{}_ACC;\n'.format(timer_name, timer_name)
                 template_modules_text += 'wire {}_DN, {}_TT, {}_EN;\n'.format(timer_name, timer_name, timer_name)
-                template_modules_text += "Timer t{}(clk, rst, tick, 32'd{}, {}_IN, {}_DN, {}_TT, {}_EN, {}_ACC);\n\n" \
-                    .format(timer_cnt,timer[0][1].split('=')[1],timer_name,timer_name,timer_name,timer_name,timer_name)
+                template_modules_text += "Timer t{}(clk, rst, tick, {}_PRE, {}_IN, {}_DN, {}_TT, {}_EN, {}_ACC);\n\n" \
+                    .format(timer_cnt,timer_name,timer_name,timer_name,timer_name,timer_name,timer_name)
         # 
         # template_modules_text += 'timer yee haw {} {} \n'.format(timer_list[i][0], i)
     
