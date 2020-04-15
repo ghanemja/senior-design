@@ -64,7 +64,23 @@ def parse_l5x(root, filename):
             new_timer_str = 'TON({}, {}_PRE={})'.format(timer_name,timer_name,timerPRE_val)
             updated_rung = updated_rung[:start_index] + new_timer_str + updated_rung[end_index+1:]
         updated_rungs.append(updated_rung)
-        
+    rungs = updated_rungs
+    
+    updated_rungs = []
+    for rung in rungs:
+        updated_rung = rung.replace('CTU','C~U')
+        while 'T~N' in updated_rung:
+            start_index = updated_rung.find('C~U')
+            end_index = start_index
+            while updated_rung[end_index] != ')':
+                end_index += 1
+            counter_str = updated_rung[start_index:end_index+1][4:]
+            counter_name = counter_str.split(',')[0]
+            counter_tag = Tags.find('Tag[@Name="{}"]'.format(counter_name))
+            counterPRE_val = counter_tag.find('Data[@Format="Decorated"]/Structure/DataValueMember[@Name="PRE"]').attrib['Value']
+            new_counter_str = 'CTU({}, {}_PRE={})'.format(counter_name,counter_name,counterPRE_val)
+            updated_rung = updated_rung[:start_index] + new_counter_str + updated_rung[end_index+1:]
+        updated_rungs.append(updated_rung)
     rungs = updated_rungs
     
     # Combine rungs into text each rung is a string combining that into one bit string
@@ -92,10 +108,13 @@ def parse_l5x(root, filename):
         # have to replace variable locations with memory names we can do this since there is only one input and output module, Local:3:I.Data replaces with actual name which is in the same order we got it earlier, 
         # using input names to replace names of locations. looks at entire text as a whole
         for i in range(0,len(inputs)): 
-            hashigo_text = hashigo_text.replace('Local:3:I.Data.{}'.format(i), inputs[i])
+            hashigo_text = hashigo_text.replace('I.Data.{}'.format(i), inputs[i])
         for i in range(0,len(outputs)):
-            hashigo_text = hashigo_text.replace('Local:4:O.Data.{}'.format(i), outputs[i])
-    # Just to say where erroredout
+            hashigo_text = hashigo_text.replace('O.Data.{}'.format(i), outputs[i])
+        # get rid of local
+        for i in range(0,100):
+            hashigo_text = hashigo_text.replace('Local:{}:'.format(i), '')
+    # Just to say where errored out
     except:
         print('\nError finding inputs/outputs\n')
     
@@ -173,7 +192,9 @@ def write_verilog(filename):
     # regs = registers, register is a variable in verilog
     # every item in regs list is a list itself (a list of sets, each list has 2 arguments, first is name then data type), this is general not unique to each rung
     timer_list = [] # add timers as we find them
+    counter_list = []
     timer_presets = {}
+    counter_presents = {}
     for rung in rungs:
     # goes left to right through the rung and parses the string into a data structure that we can use for verilog
         # going into each rungs
@@ -190,7 +211,6 @@ def write_verilog(filename):
         # while it is not an empty string increment i because we added a start node
         # i is a counter
             i += 1
-            
             # general approach: add a new node to the node list then chop it off from that part of the string
             
             # print(rung)
@@ -273,6 +293,7 @@ def write_verilog(filename):
         mov_list = [] # outputs can be basic variable or move function or time function
         add_list = []
         timer_list_current_rung = []
+        counter_list_current_rung = []
         # list of outputs and we are separating them into lists based on what type of output they are
         # can be function
         for l in output_arguments: # l is a node
@@ -297,6 +318,7 @@ def write_verilog(filename):
                 if not [tmp, 'int'] in regs_list:
                     regs_list.append([tmp,'int'])
                 add_list.append([l.arguments[0], l.arguments[1], tmp])
+            #timer counts elapsed time
             elif l.node_type == 'TON': # ton is for timer
                 #print(l.arguments[0])
                 if not [l.arguments,rung_count] in timer_list:
@@ -306,8 +328,15 @@ def write_verilog(filename):
                         regs_list.append(['{}_PRE'.format(l.arguments[0]),'int'])
                 timer_list_current_rung.append([l.arguments,rung_count])
                 timer_presets[l.arguments[0]] = l.arguments[1].split('=')[1]
-                
-                    
+            #counter counts pulses/how many times it turns on and off
+            elif l.node_type == 'CTU':
+                if not [l.arguments,rung_count] in counter_list:
+                    counter_list.append([l.arguments,rung_count])
+                    regs_list.append(['{}_IN'.format(l.arguments[0]),'bool'])
+                if not ['{}_PRE'.format(l.arguments[0]),'int'] in regs_list:
+                    regs_list.append(['{}_PRE'.format(l.arguments[0]),'int'])
+                counter_list_current_rung.append([l.arguments,rung_count])
+                counter_presets[l.arguments[0]] = l.arguments[1].split('=')[1]
         # for node in nodes:
             # print(node)
         # print('\n')
@@ -332,10 +361,43 @@ def write_verilog(filename):
                 right_text += '('
             elif type == 'RBRACKET':
                 right_text += ')'
+            elif type == 'GEQ':
+            # add a new node type "GEQ" for greater than or equal to
+            # two args A and B and we need to check both of them
+                A = node.arguments[0]
+                B = node.arguments[1]
+                right_text += '(n_{} >= n_s{} )'.format(A,B)
+                if !A.isnumeric():
+                    # check if its a variable and if so check if already added
+                    if not [A, 'int'] in regs_list:
+                        regs_list.append([A, 'int'])
+                if not B.isnumeric():
+                    if not [B, 'int'] in regs_list:
+                        regs_list.append([B, 'int'])
+            # just like XIC reps a var, and XIO is inverse of var
+            # ONS is like XIC but only true when var just turned on an
+            # after it executes it turns the variable back off again until it gets reset only true on rising edge one time
+            # have an additional bit registered to track the variables previous state
+            # like XIC and previous XIO
+            elif type = 'ONS': #one shot instruction
+                right_text += '(n_{} && prev_{}) '.format(node.arguments[0], node.arguments[0])
+                if not [node.arguments[0], 'bool'] in regs_list:
+                    regs_list.append([node.arugments[0], 'bool']);
+                    regs_list.append(['prev_{}'.format(node.arguments[0]), 'bool'])
+            elif type = 'EQU':
+                A = node.arguments[0]
+                B = node.arguments[1]
+                right_text += '(n_{} == n_s{} )'.format(A,B)
+                if !A.isnumeric():
+                    if not [A, 'int'] in regs_list:
+                        regs_list.append([A, 'int'])
+                if not B.isnumeric():
+                    if not [B, 'int'] in regs_list:
+                        regs_list.append([B, 'int'])
         right_text = right_text.strip()
         if right_text == '':
             right_text = "1'b1"
-        
+            if not
         # have logic now and have to create the text from it
         # have 4 lists and they each have different formatting
         # l is variable, right text is logic used in every one
@@ -360,6 +422,8 @@ def write_verilog(filename):
                 rung_text += " + {};".format(a[1])
         for t in timer_list_current_rung:
             rung_text += '\n\t\t\t\tn_{}_IN <= {};'.format(t[0][0], right_text)
+        for c in counter_list_current_rung:
+            rung_text += '\n\t\t\t\tn_{}_IN <= {};'.format(c[0][0], right_text)
         rung_text += '\n\t\t\tend\n\n'
         rungs_text += rung_text
         
@@ -373,11 +437,18 @@ def write_verilog(filename):
     rungs_text += '\t\t\t{}: begin'.format(rung_count)
     for reg in regs_list:
         if reg[1] == 'bool':
-            rungs_text += '\n\t\t\t\t{} <= n_{};'.format(reg[0],reg[0])
+            if 'prev_' not in reg[0]:
+                rungs_text += '\n\t\t\t\t{} <= n_{};'.format(reg[0],reg[0])
     rungs_text += '\n'
     for reg in regs_list:
         if reg[1] == 'int':
             rungs_text += '\n\t\t\t\t{} <= n_{};'.format(reg[0],reg[0])
+    rungs_text += '\n'
+    for reg in regs_list:
+    #if any rungs are a prev var we will assign them with the variable
+        if 'prev_' in reg[0]:
+            # cut of first 5 characters becuase that is the prev_ part
+            rungs_text += '\n\t\t\t\t{} <= {};'.format(reg[0],reg[0][5:])
     rungs_text += '\n\t\t\tend\n'
     
     # replacing rungs count variable to the output text file
@@ -399,9 +470,14 @@ def write_verilog(filename):
             regs_text += "\nreg {};".format(reg[0])
     for reg in regs_list:
         if reg[1] == 'int':
-            if reg[0][-4:] == '_PRE':
-                timer_preset = timer_presets[reg[0][:-4]]
-                regs_text += "\nreg [31:0]{} = 32'd{};".format(reg[0], timer_preset)
+            if reg[0][:-4] == '_PRE':
+                # figure out if timer or counter preset
+                if reg[0][:-4] in timer_presets:
+                    timer_preset = timer_presets[reg[0][:-4]]
+                    regs_text += "\nreg [31:0]{} = 32'd{};".format(reg[0], timer_preset)
+                elif reg[0][:-4] in counter_presets:
+                    counter_preset = counter_presets[reg[0][:-4]]
+                    regs_text += "\nreg [31:0]{} = 32'd{};".format(reg[0], counter_preset)
             else:
                 regs_text += "\nreg [31:0]{};".format(reg[0])
     regs_text += '\n'        
@@ -410,9 +486,12 @@ def write_verilog(filename):
             regs_text += "\nreg n_{};".format(reg[0])
     for reg in regs_list:
         if reg[1] == 'int':
-            if reg[0][-4:] == '_PRE':
+            if reg[0][:-4] == '_PRE':
                 timer_preset = timer_presets[reg[0][:-4]]
                 regs_text += "\nreg [31:0]n_{} = 32'd{};".format(reg[0], timer_preset)
+            elif reg[0][:-4] in counter_presets:
+                counter_preset = counter_presets[reg[0][:-4]]
+                regs_text += "\nreg [31:0]n_{} = 32'd{};".format(reg[0], counter_preset)
             else:
                 regs_text += "\nreg [31:0]n_{};".format(reg[0])
     v_text = v_text.replace('{set_regs}', regs_text)
@@ -424,23 +503,31 @@ def write_verilog(filename):
     set_resets_text = ''
     for reg in regs_list:
         if reg[1] == 'bool':
-            set_resets_text += "\n\t\t{} <= 1'b0;".format(reg[0])
+            if 'prev_' not in reg[0]:
+                set_resets_text += "\n\t\t{} <= 1'b0;".format(reg[0])
     for reg in regs_list:
         if reg[1] == 'int':
             if reg[0][-4:] == '_PRE':
                 timer_preset = timer_presets[reg[0][:-4]]
                 set_resets_text += "\n\t\t{} <= 32'd{};".format(reg[0], timer_preset)
+            elif reg[0][:-4] in counter_presets:
+                counter_preset = counter_presets[reg[0][:-4]]
+                set_resets_text += "\n\t\t{} <= 32'd{};".format(reg[0], counter_preset)
             else:
                 set_resets_text += "\n\t\t{} <= 32'd0;".format(reg[0])
     set_resets_text += '\n'            
     for reg in regs_list:
         if reg[1] == 'bool':
-            set_resets_text += "\n\t\tn_{} <= 1'b0;".format(reg[0])
+            if 'prev_' not in reg[0]:
+                set_resets_text += "\n\t\tn_{} <= 1'b0;".format(reg[0])
     for reg in regs_list:
         if reg[1] == 'int':
             if reg[0][-4:] == '_PRE':
                 timer_preset = timer_presets[reg[0][:-4]]
                 set_resets_text += "\n\t\tn_{} <= 32'd{};".format(reg[0], timer_preset)
+            elif reg[0][:-4] in counter_presets:
+                counter_preset = counter_presets[reg[0][:-4]]
+                set_resets_text += "\n\t\tn_{} <= 32'd{};".format(reg[0], counter_preset)
             else:
                 set_resets_text += "\n\t\tn_{} <= 32'd0;".format(reg[0])
     v_text = v_text.replace('{set_resets}', set_resets_text)
@@ -463,6 +550,7 @@ def write_verilog(filename):
     template_modules_text += '\n\n'
     # Add timers if needed
     timer_cnt = 0
+    counter_cnt = 0
     # for each timer figure out which rung it is associated to bc they are separated by rungs
     # for each timer we have to make more wires bc timer module has a lot of inputs and outputs
     for i in range(rung_count):
@@ -481,6 +569,21 @@ def write_verilog(filename):
                     .format(timer_cnt,timer_name,timer_name,timer_name,timer_name,timer_name,timer_name)
         # 
         # template_modules_text += 'timer yee haw {} {} \n'.format(timer_list[i][0], i)
+    
+    for i in range(rung_count):
+        fig = 0
+        for counter in counter_list:
+            if counter[1] == i;
+                counter_cnt += 1
+                if fig == 0:
+                    template_modules_text += '/* Rung {} */]n'.format(i)
+                    fig = 1
+                counter_name = counter[0][0]
+                template_modules_text += '// Counter: {}\n'.format(counter_name)
+                template_modules_text += 'wire [31:0]{}_ACC;\n'.format(counter_name, counter_name)
+                template_modules_text += 'wire {}_DN, {}_EN;\n'.format(counter_name, counter_name)
+                template_modules_text += "Counter c{}(clk, rst, tick, {}_PRE, {}_IN, {}_DN, {}_EN, {}_ACC);\n\n" \
+                .format(counter_cnt, counter_name,counter_name,counter_name,counter_name,counter_name)
     
     v_text = v_text.replace('{set_template_modules}', template_modules_text);
     
