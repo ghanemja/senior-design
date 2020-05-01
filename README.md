@@ -17,9 +17,9 @@ This system converts Allen Bradley Ladder Logic to Verilog HDL.
 
 ### Current Limitations
 * Only the features above are implemented at this point. More features will be implemented in the coming months.
-* The following features must be on the left hand side of the ladder logic program (XIC, XIO, ONS, GEQ, EQU)
-* The following features must be on the right hand side of the ladder logic program (OTE, TON, CTU, RES, MOV)
-* All features on the right hand side of each rung must be in one parallel list. See [here](https://raw.githubusercontent.com/ghanemja/senior-design/master/misc/ex1.png) and [here](https://raw.githubusercontent.com/ghanemja/senior-design/master/misc/ex2.png) for examples
+* The following features must be on the left hand side of the ladder logic program: XIC, XIO, ONS, GEQ, EQU.
+* The following features must be on the right hand side of the ladder logic program: OTE, TON, CTU, RES, MOV.
+* All features on the right hand side of each rung must be in one parallel list. See [here](https://raw.githubusercontent.com/ghanemja/senior-design/master/misc/ex1.png) and [here](https://raw.githubusercontent.com/ghanemja/senior-design/master/misc/ex2.png) for examples.
 * Currently, ONS only work following a single XIC or XIO that immediately follows the left power rail.
 
 ### How to Run
