@@ -21,6 +21,7 @@ This system converts Allen Bradley Ladder Logic to Verilog HDL.
 * The following features must be on the right hand side of the ladder logic program: OTE, TON, CTU, RES, MOV.
 * All features on the right hand side of each rung must be in one parallel list. See [here](https://raw.githubusercontent.com/ghanemja/senior-design/master/misc/ex1.png) and [here](https://raw.githubusercontent.com/ghanemja/senior-design/master/misc/ex2.png) for examples.
 * Currently, ONS only work following a single XIC or XIO that immediately follows the left power rail.
+* Currently, only tested with Allen Bradley RSLogix 5000 v19.1
 
 ### How to Run
 To use this system, you just need Python. It has only been tested with Python 3.7.3, but should work with any Python 3.X version.
