@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="19.01" TargetName="Template" TargetType="Controller" ContainsContext="false" Owner="D Blank, Avery Dennison" ExportDate="Sun Apr 26 21:22:12 2020" ExportOptions="DecoratedData ForceProtectedEncoding AllProjDocTrans">
-<Controller Use="Target" Name="Template" ProcessorType="1769-L32E" MajorRev="19" MinorRev="11" TimeSlice="10" ShareUnusedTimeSlice="1" ProjectCreationDate="Mon Sep 20 15:40:14 2004" LastModifiedDate="Sun Apr 26 14:59:36 2020" SFCExecutionControl="CurrentActive" SFCRestartPosition="MostRecent"
+<RSLogix5000Content SchemaRevision="1.0" SoftwareRevision="19.01" TargetName="Template" TargetType="Controller" ContainsContext="false" Owner="Avery Dennison User, Avery Dennison" ExportDate="Mon Oct 05 17:30:57 2020" ExportOptions="DecoratedData ForceProtectedEncoding AllProjDocTrans">
+<Controller Use="Target" Name="Template" ProcessorType="1769-L32E" MajorRev="19" MinorRev="11" TimeSlice="10" ShareUnusedTimeSlice="1" ProjectCreationDate="Sun Sep 27 20:19:25 2020" LastModifiedDate="Mon Oct 05 17:30:41 2020" SFCExecutionControl="CurrentActive" SFCRestartPosition="MostRecent"
  SFCLastScan="DontScan" CommPath="AB_ETHIP-1\134.53.130.232\Backplane\0" ProjectSN="16#0037_2a7b" MatchProjectToController="false" CanUseRPIFromProducer="false" InhibitAutomaticFirmwareUpdate="0">
 <RedundancyInfo Enabled="false" KeepTestEditsOnSwitchOver="false" IOMemoryPadPercentage="90" DataTablePadPercentage="50"/>
 <Security Code="0"/>
@@ -50,7 +50,7 @@
 <Ports>
 <Port Id="1" Address="1" Type="Compact" Upstream="true"/>
 </Ports>
-<Communications>
+<Communications CommMethod="536870913">
 <ConfigTag ConfigSize="12">
 <Data>10 00 00 00 66 00 00 00 01 00 00 00 00 92 00 92 
 00 00 00 00</Data>
@@ -145,7 +145,7 @@
 </Connections>
 </Communications>
 <ExtendedProperties>
-<public><ConfigID>300</ConfigID></public></ExtendedProperties>
+<public><ConfigID>300</ConfigID><CatNum>1769-IF4</CatNum></public></ExtendedProperties>
 </Module>
 <Module Name="Input_Module_16_PT" CatalogNumber="1769-IQ16/A" Vendor="1" ProductType="7" ProductCode="67" Major="1" Minor="1" ParentModule="Local" ParentModPortId="1" Inhibited="false" MajorFault="true"
 >
@@ -185,6 +185,9 @@
 <Comment Operand=".DATA.7">
 <![CDATA[Atmosphere]]>
 </Comment>
+<Comment Operand=".DATA.8">
+<![CDATA[heateron]]>
+</Comment>
 </Comments>
 <ForceData>00 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00 
 00 00 00 00 00 00 00 00</ForceData>
@@ -199,7 +202,7 @@
 </Connections>
 </Communications>
 <ExtendedProperties>
-<public><ConfigID>250</ConfigID></public></ExtendedProperties>
+<public><ConfigID>250</ConfigID><CatNum>1769-IQ16</CatNum></public></ExtendedProperties>
 </Module>
 <Module Name="Output_Module_16_PT" CatalogNumber="1769-OB16P/B" Vendor="1" ProductType="7" ProductCode="91" Major="2" Minor="1" ParentModule="Local" ParentModPortId="1" Inhibited="false" MajorFault="true"
 >
@@ -254,6 +257,9 @@
 <Comment Operand=".DATA.4">
 <![CDATA[VV2]]>
 </Comment>
+<Comment Operand=".DATA.5">
+<![CDATA[heaterson]]>
+</Comment>
 <Comment Operand=".DATA.6">
 <![CDATA[reactorheater]]>
 </Comment>
@@ -273,11 +279,18 @@
 </Connections>
 </Communications>
 <ExtendedProperties>
-<public><ConfigID>150</ConfigID></public></ExtendedProperties>
+<public><ConfigID>150</ConfigID><CatNum>1769-OB16P</CatNum></public></ExtendedProperties>
 </Module>
 </Modules>
 <AddOnInstructionDefinitions/>
-<Tags/>
+<Tags>
+<Tag Name="heateron" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write">
+<Data>00</Data>
+<Data Format="Decorated">
+<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
+</Data>
+</Tag>
+</Tags>
 <Programs>
 <Program Name="MainProgram" TestEdits="false" MainRoutineName="MainRoutine" Disabled="false">
 <Tags>
@@ -538,10 +551,10 @@
 </Data>
 </Tag>
 <Tag Name="trestarts" TagType="Base" DataType="TIMER" Constant="false" ExternalAccess="Read/Write">
-<Data>74 29 37 00 E8 03 00 00 00 00 00 00</Data>
+<Data>74 29 37 00 28 23 00 00 00 00 00 00</Data>
 <Data Format="Decorated">
 <Structure DataType="TIMER">
-<DataValueMember Name="PRE" DataType="DINT" Radix="Decimal" Value="1000"/>
+<DataValueMember Name="PRE" DataType="DINT" Radix="Decimal" Value="9000"/>
 <DataValueMember Name="ACC" DataType="DINT" Radix="Decimal" Value="0"/>
 <DataValueMember Name="EN" DataType="BOOL" Value="0"/>
 <DataValueMember Name="TT" DataType="BOOL" Value="0"/>
@@ -597,12 +610,6 @@
 <DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
 </Data>
 </Tag>
-<Tag Name="trig_tvac1" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write">
-<Data>00</Data>
-<Data Format="Decorated">
-<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
-</Data>
-</Tag>
 <Tag Name="tvac1" TagType="Base" DataType="TIMER" Constant="false" ExternalAccess="Read/Write">
 <Data>74 29 37 00 A0 0F 00 00 00 00 00 00</Data>
 <Data Format="Decorated">
@@ -613,12 +620,6 @@
 <DataValueMember Name="TT" DataType="BOOL" Value="0"/>
 <DataValueMember Name="DN" DataType="BOOL" Value="0"/>
 </Structure>
-</Data>
-</Tag>
-<Tag Name="tvac1_start" TagType="Base" DataType="BOOL" Radix="Decimal" Constant="false" ExternalAccess="Read/Write">
-<Data>00</Data>
-<Data Format="Decorated">
-<DataValue DataType="BOOL" Radix="Decimal" Value="0"/>
 </Data>
 </Tag>
 <Tag Name="tvacw" TagType="Base" DataType="TIMER" Constant="false" ExternalAccess="Read/Write">
@@ -685,10 +686,15 @@
 ]]>
 </Comment>
 <Text>
-<![CDATA[[XIO(Local:2:I.Data.1) ,XIO(Local:2:I.Data.0) XIC(cycles.DN) ]OTE(mstop);]]>
+<![CDATA[[XIO(Local:2:I.Data.1) ,XIC(cycles.DN) ]OTE(mstop);]]>
 </Text>
 </Rung>
 <Rung Number="1" Type="N">
+<Text>
+<![CDATA[XIC(Local:2:I.Data.8)OTE(Local:3:O.Data.5);]]>
+</Text>
+</Rung>
+<Rung Number="2" Type="N">
 <Comment>
 <![CDATA[Begin: Pressure and Temperature
 ]]>
@@ -697,42 +703,42 @@
 <![CDATA[[XIC(Local:2:I.Data.0) XIC(Local:2:I.Data.2) ,XIC(mstart) XIC(Local:2:I.Data.1) XIO(mstop) ]OTE(mstart);]]>
 </Text>
 </Rung>
-<Rung Number="2" Type="N">
+<Rung Number="3" Type="N">
 <Text>
 <![CDATA[XIC(mstart)TON(tpvac,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="3" Type="N">
+<Rung Number="4" Type="N">
 <Text>
 <![CDATA[[XIC(mstart) ,XIC(Local:3:O.Data.6) ]XIO(mstop)OTE(Local:3:O.Data.6);]]>
 </Text>
 </Rung>
-<Rung Number="4" Type="N">
+<Rung Number="5" Type="N">
 <Text>
 <![CDATA[[XIC(tpvac.TT) ,XIC(mstart) XIC(vacpumps) XIO(pulse_start.EN) ]OTE(vacpumps);]]>
 </Text>
 </Rung>
-<Rung Number="5" Type="N">
+<Rung Number="6" Type="N">
 <Text>
 <![CDATA[XIC(mstart)[XIC(Local:2:I.Data.6) ,XIO(Local:2:I.Data.7) XIC(MFC) ]OTE(MFC);]]>
 </Text>
 </Rung>
-<Rung Number="6" Type="N">
+<Rung Number="7" Type="N">
 <Text>
 <![CDATA[[XIC(mstart) XIC(Local:2:I.Data.5) ,XIC(mstart) XIC(Tok) ][OTE(Tok) ,TON(pulse_start,?,?) ];]]>
 </Text>
 </Rung>
-<Rung Number="7" Type="N">
+<Rung Number="8" Type="N">
 <Text>
 <![CDATA[XIC(pulse_start.TT)TON(start_section,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="8" Type="N">
+<Rung Number="9" Type="N">
 <Text>
 <![CDATA[XIC(start_section.TT)TON(delay_start,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="9" Type="N">
+<Rung Number="10" Type="N">
 <Comment>
 <![CDATA[Begin Serial]]>
 </Comment>
@@ -740,7 +746,7 @@
 <![CDATA[XIC(mstart)[MOV(1000,precursor1) ,MOV(2000,tonp1.PRE) ,MOV(3000,twait1.PRE) ,MOV(4000,tvac1.PRE) ,MOV(9,cycles.PRE) ,MOV(6000,twater.PRE) ,MOV(7000,twaitw.PRE) ,MOV(8000,tvacw.PRE) ];]]>
 </Text>
 </Rung>
-<Rung Number="10" Type="N">
+<Rung Number="11" Type="N">
 <Comment>
 <![CDATA[Begin: Serial.precursors
 ]]>
@@ -749,57 +755,57 @@
 <![CDATA[XIC(delay_start.EN)OTE(start_serial);]]>
 </Text>
 </Rung>
-<Rung Number="11" Type="N">
+<Rung Number="12" Type="N">
 <Text>
 <![CDATA[XIC(start_serial)TON(tpstart,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="12" Type="N">
+<Rung Number="13" Type="N">
 <Text>
 <![CDATA[XIC(start_serial)ONS(startmem)OTE(startpos);]]>
 </Text>
 </Rung>
-<Rung Number="13" Type="N">
+<Rung Number="14" Type="N">
 <Text>
 <![CDATA[XIC(tonp1.DN)ONS(trig1)OTE(sv1_start);]]>
 </Text>
 </Rung>
-<Rung Number="14" Type="N">
+<Rung Number="15" Type="N">
 <Text>
 <![CDATA[GEQ(precursor1,2)[XIC(trestarts.TT) XIO(done1) ,XIC(tpstart.EN) ,XIO(tonp1.DN) XIC(tonp1.EN) ]TON(tonp1,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="15" Type="N">
+<Rung Number="16" Type="N">
 <Text>
 <![CDATA[XIC(tonp1.TT)OTE(sv11);]]>
 </Text>
 </Rung>
-<Rung Number="16" Type="N">
+<Rung Number="17" Type="N">
 <Text>
 <![CDATA[[XIC(sv1_start) ,XIO(startpos) XIC(trig11) XIO(trig81) ]OTE(trig11);]]>
 </Text>
 </Rung>
-<Rung Number="17" Type="N">
+<Rung Number="18" Type="N">
 <Text>
 <![CDATA[XIC(trig11)TON(twait1,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="18" Type="N">
+<Rung Number="19" Type="N">
 <Text>
 <![CDATA[XIC(twait1.DN)TON(tvac1,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="19" Type="N">
+<Rung Number="20" Type="N">
 <Text>
 <![CDATA[XIC(tvac1.TT)OTE(svac1);]]>
 </Text>
 </Rung>
-<Rung Number="20" Type="N">
+<Rung Number="21" Type="N">
 <Text>
 <![CDATA[[XIC(tvac1.DN) ONS(trig2) ,XIC(trig21) XIO(startpos) XIO(trig81) ]OTE(trig21);]]>
 </Text>
 </Rung>
-<Rung Number="21" Type="N">
+<Rung Number="22" Type="N">
 <Comment>
 <![CDATA[Begin: serial.water
 ]]>
@@ -808,37 +814,37 @@
 <![CDATA[XIC(trig21)TON(twater,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="22" Type="N">
+<Rung Number="23" Type="N">
 <Text>
 <![CDATA[XIC(twater.TT)OTE(sw);]]>
 </Text>
 </Rung>
-<Rung Number="23" Type="N">
+<Rung Number="24" Type="N">
 <Text>
 <![CDATA[[XIC(twater.DN) ONS(trig7) ,XIC(trig71) XIO(startpos) XIO(trestarts.TT) ]OTE(trig71);]]>
 </Text>
 </Rung>
-<Rung Number="24" Type="N">
+<Rung Number="25" Type="N">
 <Text>
 <![CDATA[XIC(trig71)TON(twaitw,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="25" Type="N">
+<Rung Number="26" Type="N">
 <Text>
 <![CDATA[XIC(twaitw.DN)TON(tvacw,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="26" Type="N">
+<Rung Number="27" Type="N">
 <Text>
 <![CDATA[XIC(tvacw.TT)OTE(svac2);]]>
 </Text>
 </Rung>
-<Rung Number="27" Type="N">
+<Rung Number="28" Type="N">
 <Text>
 <![CDATA[[XIC(tvacw.DN) ONS(trig8) ,XIC(trig81) XIO(startpos) XIO(trestarts.TT) ]OTE(trig81);]]>
 </Text>
 </Rung>
-<Rung Number="28" Type="N">
+<Rung Number="29" Type="N">
 <Comment>
 <![CDATA[Begn: serial.counter
 ]]>
@@ -847,45 +853,45 @@
 <![CDATA[XIC(trig81)TON(trestarts,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="29" Type="N">
+<Rung Number="30" Type="N">
 <Text>
 <![CDATA[XIC(trestarts.TT)CTU(cycles,?,?);]]>
 </Text>
 </Rung>
-<Rung Number="30" Type="N">
+<Rung Number="31" Type="N">
 <Text>
 <![CDATA[XIC(startpos)RES(cycles);]]>
 </Text>
 </Rung>
-<Rung Number="31" Type="N">
+<Rung Number="32" Type="N">
 <Text>
 <![CDATA[XIC(cycles.DN)[OTE(done) ,OTE(done1) ];]]>
 </Text>
 </Rung>
-<Rung Number="32" Type="N">
+<Rung Number="33" Type="N">
 <Comment>
 <![CDATA[Begin: output]]>
 </Comment>
 <Text>
-<![CDATA[XIC(sv11)OTE(Local:3:O.Data.0);]]>
-</Text>
-</Rung>
-<Rung Number="33" Type="N">
-<Text>
-<![CDATA[XIC(sw)OTE(Local:3:O.Data.2);]]>
+<![CDATA[XIC(sv11)XIC(mstart)OTE(Local:3:O.Data.0);]]>
 </Text>
 </Rung>
 <Rung Number="34" Type="N">
 <Text>
-<![CDATA[[XIC(vacpumps) ,XIC(svac1) ]OTE(Local:3:O.Data.3);]]>
+<![CDATA[XIC(sw)XIC(mstart)OTE(Local:3:O.Data.2);]]>
 </Text>
 </Rung>
 <Rung Number="35" Type="N">
 <Text>
-<![CDATA[[XIC(vacpumps) ,XIC(svac2) ]OTE(Local:3:O.Data.4);]]>
+<![CDATA[[XIC(vacpumps) ,XIC(svac1) ]XIC(mstart)OTE(Local:3:O.Data.3);]]>
 </Text>
 </Rung>
 <Rung Number="36" Type="N">
+<Text>
+<![CDATA[[XIC(vacpumps) ,XIC(svac2) ]XIC(mstart)OTE(Local:3:O.Data.4);]]>
+</Text>
+</Rung>
+<Rung Number="37" Type="N">
 <Text>
 <![CDATA[XIC(MFC)OTE(Local:3:O.Data.7);]]>
 </Text>

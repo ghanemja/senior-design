@@ -17,8 +17,8 @@ module DownClock(
 );
 
 // Assuming 50 MHz clock (since that's what DE2-115 has)
-// 1 tick per 1 ms (i.e. 1 kHz)
-parameter TICKS = 50000;
+// 1 tick per 1 us (i.e. 1 MHz)
+parameter TICKS = 50;
 
 reg [31:0]count;
 assign tick = tick_reg;

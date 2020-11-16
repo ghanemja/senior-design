@@ -74,6 +74,7 @@ def parse_l5x(root, filename):
             timer_tag = Tags.find('Tag[@Name="{}"]'.format(timer_name))
             # Obtain Timer's preset value
             timerPRE_val = timer_tag.find('Data[@Format="Decorated"]/Structure/DataValueMember[@Name="PRE"]').attrib['Value']
+            timerPRE_val = str(int(timerPRE_val)*1000)
             # Create new Timer string using preset value
             new_timer_str = 'TON({}, {}_PRE={})'.format(timer_name,timer_name,timerPRE_val)
             # Replace old rung string with new rung string consisting of updated Timer string
@@ -263,7 +264,7 @@ def write_verilog(filename):
         
     # Assign each physical input to a switch on the FPGA
     for input in inputs:
-        wires_text += 'wire n_{} = SW[{}];\n'.format(input.strip(),i) 
+        wires_text += 'wire n_{} = !SW[{}];\n'.format(input.strip(),i) 
         i += 1
             
     wires_text += '\n'
@@ -405,7 +406,6 @@ def write_verilog(filename):
         if len(nodes) > 0:
             while nodes[-1].node_type in ['AND','OR','LBRACKET']:
                 nodes = nodes[:-1]
-                
                 
                 
                 
